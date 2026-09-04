@@ -1,9 +1,6 @@
 ﻿using EmployeeManagementWebApplication.Helpers;
 using EmployeeManagementWebApplication.Interface;
 using EmployeeManagementWebApplication.Model;
-
-
-
 using Microsoft.Data.SqlClient;
 using System.Data;
 namespace EmployeeManagementWebApplication.Repository

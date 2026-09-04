@@ -10,6 +10,8 @@ namespace EmployeeManagementWebApplication.Helpers
         {
             services.AddSingleton<DataBaseConnection>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<JwtTokenHelper>();
 
             return services;
         }
