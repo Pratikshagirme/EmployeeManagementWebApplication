@@ -4,6 +4,7 @@ using EmployeeManagementWebApplication.Model;
 using EmployeeManagementWebApplication.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace EmployeeManagementWebApplication.Controllers
 {
@@ -23,7 +24,9 @@ namespace EmployeeManagementWebApplication.Controllers
         {
             try
             {
+               
                 CommonResponse response = new CommonResponse();
+                
                 User user = await _repository.Login(request);
                 if (user == null)
                 {

@@ -10,6 +10,7 @@ namespace EmployeeManagementWebApplication.Model
         public string Department { get; set; } = string.Empty;
         public decimal Salary { get; set; }
         public bool IsActive { get; set; }
+        public string? ProfileImage { get; set; }
     }
 
     public class EmployeeRequest
@@ -35,6 +36,7 @@ namespace EmployeeManagementWebApplication.Model
 
         [Required(ErrorMessage = "IsActive Bit is required")]
         public bool IsActive { get; set; }
+        public string? ProfileImage { get; set; }
     }
 
     public class EmployeeRespnse
@@ -45,6 +47,7 @@ namespace EmployeeManagementWebApplication.Model
         public string Department { get; set; } = string.Empty;
         public decimal Salary { get; set; }
         public bool IsActive { get; set; }
+        public string? ProfileImage { get; set; }
     }
 
     

@@ -8,10 +8,12 @@ namespace EmployeeManagementWebApplication.Repository
     public class EmployeeRepository : IEmployeeRepository
     {
         private readonly DataBaseConnection _dbConnection;
+        private readonly ILogger<EmployeeRepository> _Logger;
 
-        public EmployeeRepository(DataBaseConnection dbConnection)
+        public EmployeeRepository(DataBaseConnection dbConnection,ILogger<EmployeeRepository> Logger)
         {
             _dbConnection = dbConnection;
+            _Logger = Logger;
         }
 
         public async Task<CommonResponse> GetAllEmployees()
@@ -19,6 +21,7 @@ namespace EmployeeManagementWebApplication.Repository
             CommonResponse response = new CommonResponse();
             try
             {
+                _Logger.LogInformation("Fetchin all employees from database");
                 List<Employee> employees = new List<Employee>();
                 using (SqlConnection con = _dbConnection.GetConnection())
                 {
@@ -38,6 +41,7 @@ namespace EmployeeManagementWebApplication.Repository
                         employee.Department = row["Department"].ToString();
                         employee.Salary = Convert.ToDecimal(row["Salary"]);
                         employee.IsActive = Convert.ToBoolean(row["IsActive"]);
+                        employee.ProfileImage = row["ProfileImage"] == DBNull.Value ? null : row["ProfileImage"].ToString();
 
                         employees.Add(employee);
                     }
@@ -45,6 +49,7 @@ namespace EmployeeManagementWebApplication.Repository
                 }
                 if (employees.Count > 0)
                 {
+                    _Logger.LogInformation("successfully fetcheched {count} employees from database",employees.Count);
                     response = new CommonResponse
                     {
                         StatusCode = 200,
@@ -55,6 +60,7 @@ namespace EmployeeManagementWebApplication.Repository
                 }
                 else
                 {
+                    _Logger.LogWarning("No employees found in database");
                     response = new CommonResponse
                     {
                         StatusCode = 204,
@@ -68,6 +74,7 @@ namespace EmployeeManagementWebApplication.Repository
             }
             catch (Exception ex)
             {
+                _Logger.LogWarning(ex, "Error Occured while fetching all employees");
                 response = new CommonResponse
                 {
                     StatusCode = 500,
@@ -82,6 +89,7 @@ namespace EmployeeManagementWebApplication.Repository
             CommonResponse response = new CommonResponse();
             try
             {
+                _Logger.LogInformation("Fetching employee with Id {Id} from database",Id);
                 DataTable table = new DataTable();
                 using (SqlConnection con = _dbConnection.GetConnection())
                 {
@@ -104,7 +112,8 @@ namespace EmployeeManagementWebApplication.Repository
                             employee.Salary = Convert.ToDecimal(row["Salary"]);
                             employee.IsActive = Convert.ToBoolean(row["IsActive"]);
                         }
-                        
+                        _Logger.LogInformation("Employee with Id {Id} fetched successfully",Id);
+
                         response = new CommonResponse
                         {
                             StatusCode = 200,
@@ -114,6 +123,7 @@ namespace EmployeeManagementWebApplication.Repository
                     }
                     else
                     {
+                        _Logger.LogWarning("Employee with Id {Id} was not found in database",Id);
                         response = new CommonResponse
                         {
                             StatusCode = 204,
@@ -125,6 +135,7 @@ namespace EmployeeManagementWebApplication.Repository
             }
             catch (Exception ex)
             {
+                _Logger.LogError(ex,"Error occurred while fetching employee with Id {Id}",Id);
                 response = new CommonResponse
                 {
                     StatusCode = 202,
@@ -139,6 +150,7 @@ namespace EmployeeManagementWebApplication.Repository
             CommonResponse response = new CommonResponse();
             try
             {
+                _Logger.LogInformation("Inserting employee with email {Email}",employee.Email);
                 using (SqlConnection con = _dbConnection.GetConnection())
                 {
                     await con.OpenAsync();
@@ -155,6 +167,7 @@ namespace EmployeeManagementWebApplication.Repository
                     DataTable table = dataset.Tables[0];
                     foreach (DataRow row in table.Rows)
                     {
+                        
                         response = new CommonResponse
                         {
                             StatusCode = Convert.ToInt32(row["StatusCode"]),
@@ -164,9 +177,11 @@ namespace EmployeeManagementWebApplication.Repository
                     }
                     
                 }
+                _Logger.LogInformation("Employee insertion completed for email {Email}", employee.Email);
             }
             catch (Exception ex)
             {
+                _Logger.LogError(ex, "Error occurred while inserting employee with email {Email}",employee.Email);
                 response = new CommonResponse
                 {
                     StatusCode = 202,
@@ -180,6 +195,7 @@ namespace EmployeeManagementWebApplication.Repository
             CommonResponse response = new CommonResponse();
             try
             {
+                _Logger.LogInformation("Updating employee with Id {Id}",employee.Id);
                 using (SqlConnection con = _dbConnection.GetConnection())
                 {
                     await con.OpenAsync();
@@ -204,10 +220,13 @@ namespace EmployeeManagementWebApplication.Repository
                         };
                     }
                     
+
                 }
+                _Logger.LogInformation("Employee with Id {Id} update operation completed", employee.Id);
             }
             catch (Exception ex)
             {
+                _Logger.LogError(ex,"Error occurred while updating employee with Id {Id}",employee.Id);
                 response = new CommonResponse
                 {
                     StatusCode = 202,
@@ -222,6 +241,8 @@ namespace EmployeeManagementWebApplication.Repository
             CommonResponse response = new CommonResponse();
             try
             {
+                _Logger.LogInformation("Deleting employee with Id {Id}",Id);
+
                 using (SqlConnection con = _dbConnection.GetConnection())
                 {
                     await con.OpenAsync();
@@ -245,13 +266,73 @@ namespace EmployeeManagementWebApplication.Repository
                     }
                     
                 }
+                _Logger.LogInformation("Employee with Id {Id} delete operation completed",Id);
             }
             catch (Exception ex)
             {
+                _Logger.LogError(ex,"Error occurred while deleting employee with Id {Id}",Id);
                 response = new CommonResponse
                 {
                     StatusCode = 202,
                     Message = ex.Message
+                };
+            }
+            return response;
+        }
+        public async Task<CommonResponse>UploadEmployeeImage(ImageUploadRequest request)
+        {
+            CommonResponse response = new CommonResponse();
+            try
+            {
+                if (request.Image == null || request.Image.Length == 0)
+                {
+                    response = new CommonResponse
+                    {
+                        StatusCode = 204,
+                        Message = "Please select image",
+                        Data = null
+                    };
+                    return response;
+                }
+                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "employee");
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+                string extension = Path.GetExtension(request.Image.FileName);
+                string fileName = $"employee_{request.EmployeeId}{extension}";
+                string filePath = Path.Combine(folderPath, fileName);
+                using(FileStream stream=new FileStream(
+                    filePath, FileMode.Create))
+                {
+                    await request.Image.CopyToAsync(stream);
+                }
+                string imagePath = $"/uploads/employee/{fileName}";
+
+                using(SqlConnection con = _dbConnection.GetConnection())
+                {
+                    await con.OpenAsync();
+                    SqlCommand cmd = new SqlCommand("UpdateEmployeeProfileImage", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Id", request.EmployeeId);
+                    cmd.Parameters.AddWithValue("@ProfileImage", imagePath);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+                response = new CommonResponse
+                {
+                    StatusCode = 200,
+                    Message = "Employee profile image uploaded successfully.",
+                    Data = imagePath
+                };
+            }
+            catch(Exception ex)
+            {
+                _Logger.LogError( ex,"Error uploading profile image for employee {Id}",request.EmployeeId);
+                response = new CommonResponse
+                {
+                    StatusCode = 202,
+                    Message = "Something went wrong.",
+                    Data = null
                 };
             }
             return response;
