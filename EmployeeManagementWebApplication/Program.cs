@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Serilog;
+using EmployeeManagementWebApplication.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,10 @@ if (app.Environment.IsDevelopment())
     app.MapSwagger();
 }
 app.UseStaticFiles();
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseMiddleware<PerformanceMiddleware>();
+app.UseMiddleware<RequestLoginMiddleware>();
 app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();

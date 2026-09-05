@@ -286,14 +286,38 @@ namespace EmployeeManagementWebApplication.Repository
             {
                 if (request.Image == null || request.Image.Length == 0)
                 {
-                    response = new CommonResponse
+                    return new CommonResponse
                     {
                         StatusCode = 204,
-                        Message = "Please select image",
+                        Message = "Please Select Image",
                         Data = null
                     };
-                    return response;
                 }
+                string oldImagePath = null;
+                using(SqlConnection con = _dbConnection.GetConnection())
+                {
+                    await con.OpenAsync();
+                    SqlCommand cmd = new SqlCommand("GetEmployeeById", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Id", request.EmployeeId);
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    DataTable table = new DataTable();
+                    adapter.Fill(table);
+                    if (table.Rows.Count > 0)
+                    {
+                        DataRow row = table.Rows[0];
+                        oldImagePath = row["ProfileImage"] == DBNull.Value ? null : row["ProfileImage"].ToString();
+                    }
+                }
+                if (!string.IsNullOrEmpty(oldImagePath))
+                {
+                    string oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", oldImagePath.TrimStart('/'));
+                    if (File.Exists(oldFilePath))
+                    {
+                        File.Delete(oldFilePath);
+                    }
+                }
+                
                 string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "employee");
                 if (!Directory.Exists(folderPath))
                 {
@@ -308,8 +332,9 @@ namespace EmployeeManagementWebApplication.Repository
                     await request.Image.CopyToAsync(stream);
                 }
                 string imagePath = $"/uploads/employee/{fileName}";
+               
 
-                using(SqlConnection con = _dbConnection.GetConnection())
+                using (SqlConnection con = _dbConnection.GetConnection())
                 {
                     await con.OpenAsync();
                     SqlCommand cmd = new SqlCommand("UpdateEmployeeProfileImage", con);

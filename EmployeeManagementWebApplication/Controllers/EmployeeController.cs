@@ -19,8 +19,12 @@ namespace EmployeeManagementWebApplication.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllEmployees()
         {
+            
+
             _Logger.LogInformation("Fetching all employees");
-            CommonResponse response = await _repository.GetAllEmployees();
+
+            CommonResponse response =await _repository.GetAllEmployees();
+
             _Logger.LogInformation("Fetched all employees successfully");
 
             return Ok(response);
@@ -87,7 +91,7 @@ namespace EmployeeManagementWebApplication.Controllers
             CommonResponse response = new CommonResponse();
             try
             {
-                
+                _Logger.LogInformation("Update employee{Id}", request.Id);
                 Employee employee = new Employee()
                 {
                     Id = request.Id ?? 0,
@@ -105,8 +109,10 @@ namespace EmployeeManagementWebApplication.Controllers
                 {
                     return BadRequest(response);
                 }
+                _Logger.LogInformation("Update employee succesfull{Id}", request.Id);
 
-            }catch(Exception ex){
+            }
+            catch(Exception ex){
                 _Logger.LogError(ex, "Error are occured while updating");
                 response = new CommonResponse
                 {
@@ -114,6 +120,7 @@ namespace EmployeeManagementWebApplication.Controllers
                     Message = ex.Message,
                     Data = null
                 };
+
             }
             
             finally { }
@@ -165,5 +172,12 @@ namespace EmployeeManagementWebApplication.Controllers
             }
             finally { }
         }
+        [HttpGet("test-error")]
+        public IActionResult TestError()
+        {
+            throw new Exception("This is a test exception");
+        }
+        
+
     }
 }
