@@ -1,5 +1,6 @@
 ﻿using EmployeeManagementWebApplication.Interface;
 using EmployeeManagementWebApplication.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
@@ -16,6 +17,7 @@ namespace EmployeeManagementWebApplication.Controllers
             _repository = repository;
             _Logger = Logger;
         }
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllEmployees()
         {
@@ -46,6 +48,7 @@ namespace EmployeeManagementWebApplication.Controllers
                 return Ok(response);
             
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> InsertEmployee(EmployeeRequest request)
         {
@@ -85,6 +88,7 @@ namespace EmployeeManagementWebApplication.Controllers
             finally{}
             return Ok(response);
         }
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<IActionResult>UpdateEmployee(EmployeeRequest request)
         {
@@ -126,6 +130,7 @@ namespace EmployeeManagementWebApplication.Controllers
             finally { }
             return Ok(response);
         }
+        [Authorize(Roles ="Admin")]
         [HttpDelete]
         public async Task<IActionResult> DeleteEmployee(int Id)
         {
@@ -177,7 +182,14 @@ namespace EmployeeManagementWebApplication.Controllers
         {
             throw new Exception("This is a test exception");
         }
-        
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register(RegisterRequest request)
+        {
+            CommonResponse response = await _repository.Register(request);
+
+            return Ok(response);
+        }
+
 
     }
 }

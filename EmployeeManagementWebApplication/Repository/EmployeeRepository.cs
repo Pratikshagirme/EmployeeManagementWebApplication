@@ -362,6 +362,76 @@ namespace EmployeeManagementWebApplication.Repository
             }
             return response;
         }
+        public async Task<CommonResponse> Register(RegisterRequest request)
+        {
+            CommonResponse response = new CommonResponse();
+
+            try
+            {
+                using (SqlConnection con = _dbConnection.GetConnection())
+                {
+                    await con.OpenAsync();
+                    int employeeId = 0;
+
+                    // Insert employee information
+                    SqlCommand cmd = new SqlCommand("InsertEmployee", con);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Name", request.Name);
+                    cmd.Parameters.AddWithValue("@Email", request.Email);
+                    cmd.Parameters.AddWithValue("@Department", request.Department);
+                    cmd.Parameters.AddWithValue("@Salary", request.Salary);
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            int statusCode = Convert.ToInt32(reader["StatusCode"]);
+                            string message = reader["Message"].ToString();
+                           
+
+                            if (statusCode != 200)
+                            {
+                                response.StatusCode = statusCode;
+                                response.Message = message;
+                                response.Data = null;
+
+                                return response;
+                            }
+                            employeeId = Convert.ToInt32(reader["EmployeeId"]);
+                        }
+                    }
+
+                    // Insert login information
+                    SqlCommand cmd1 = new SqlCommand("RegisterUser", con);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.Parameters.AddWithValue("@EmployeeId", employeeId);
+                    cmd1.Parameters.AddWithValue("@Name", request.Name);
+                    cmd1.Parameters.AddWithValue("@Password", request.Password);
+
+                    using (SqlDataReader reader = await cmd1.ExecuteReaderAsync())
+                    {
+                        
+                        if (await reader.ReadAsync())
+                        {
+                            response.StatusCode = Convert.ToInt32(reader["StatusCode"]);
+                            response.Message = reader["Message"].ToString();
+                           
+                            response.Data = null;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _Logger.LogError(ex, "Error while registering employee");
+
+                response.StatusCode = 500;
+                response.Message = ex.Message;
+                response.Data = null;
+            }
+
+            return response;
+        }
 
     }
 }

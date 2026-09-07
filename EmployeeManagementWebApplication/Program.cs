@@ -48,7 +48,7 @@ app.UseStaticFiles();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<PerformanceMiddleware>();
-app.UseMiddleware<RequestLoginMiddleware>();
+//app.UseMiddleware<RequestLoginMiddleware>();
 app.UseHttpsRedirection();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();

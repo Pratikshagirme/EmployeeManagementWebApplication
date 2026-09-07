@@ -2,6 +2,7 @@
 using EmployeeManagementWebApplication.Interface;
 using EmployeeManagementWebApplication.Model;
 using EmployeeManagementWebApplication.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -49,7 +50,7 @@ namespace EmployeeManagementWebApplication.Controllers
                 {
                     StatusCode = 200,
                     Message = "Login succesfull",
-                    Data = user
+                    Data = loginResponse
                 };
                 return Ok(response);
             }
