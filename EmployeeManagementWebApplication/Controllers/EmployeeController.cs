@@ -3,6 +3,7 @@ using EmployeeManagementWebApplication.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using System.Security.Claims;
 
 namespace EmployeeManagementWebApplication.Controllers
 {
@@ -17,7 +18,7 @@ namespace EmployeeManagementWebApplication.Controllers
             _repository = repository;
             _Logger = Logger;
         }
-        [Authorize]
+        [Authorize(Roles="Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllEmployees()
         {
@@ -31,6 +32,7 @@ namespace EmployeeManagementWebApplication.Controllers
 
             return Ok(response);
         }
+        [Authorize(Roles ="Admin")]
         [HttpGet("{Id}")]
         public async Task<IActionResult> GetEmployeeById(int Id)
         {
@@ -89,8 +91,8 @@ namespace EmployeeManagementWebApplication.Controllers
             return Ok(response);
         }
         [Authorize(Roles = "Admin")]
-        [HttpPut]
-        public async Task<IActionResult>UpdateEmployee(EmployeeRequest request)
+        [HttpPut("{id}")]
+        public async Task<IActionResult>UpdateEmployee(int id,EmployeeRequest request)
         {
             CommonResponse response = new CommonResponse();
             try
@@ -98,7 +100,7 @@ namespace EmployeeManagementWebApplication.Controllers
                 _Logger.LogInformation("Update employee{Id}", request.Id);
                 Employee employee = new Employee()
                 {
-                    Id = request.Id ?? 0,
+                    Id = id,
                     Name = request.Name,
                     Email = request.Email,
                     Department = request.Department,
@@ -177,19 +179,8 @@ namespace EmployeeManagementWebApplication.Controllers
             }
             finally { }
         }
-        [HttpGet("test-error")]
-        public IActionResult TestError()
-        {
-            throw new Exception("This is a test exception");
-        }
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register(RegisterRequest request)
-        {
-            CommonResponse response = await _repository.Register(request);
-
-            return Ok(response);
-        }
-
-
+        
+        
+        
     }
 }

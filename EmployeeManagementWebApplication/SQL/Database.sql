@@ -66,7 +66,7 @@ ALTER PROCEDURE UpdateEmployee
 AS
 BEGIN
 
-IF EXISTS(SELECT 1 FROM EmployeeWHERE Email=@Email AND Id<>@Id)
+IF EXISTS(SELECT 1 FROM Employee WHERE Email=@Email AND Id<>@Id)
 BEGIN
 SELECT 209 AS StatusCode,'Email is already present' AS Message
 RETURN

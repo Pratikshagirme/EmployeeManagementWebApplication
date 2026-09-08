@@ -1,11 +1,7 @@
 ﻿using EmployeeManagementWebApplication.Helpers;
 using EmployeeManagementWebApplication.Interface;
 using EmployeeManagementWebApplication.Model;
-using EmployeeManagementWebApplication.Repository;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
 
 namespace EmployeeManagementWebApplication.Controllers
 {
@@ -15,47 +11,60 @@ namespace EmployeeManagementWebApplication.Controllers
     {
         private readonly IUserRepository _repository;
         private readonly JwtTokenHelper _jwtTokenHelper;
+
         public AuthController(IUserRepository repository,JwtTokenHelper jwtTokenHelper)
         {
             _repository = repository;
             _jwtTokenHelper = jwtTokenHelper;
         }
+
         [HttpPost("Login")]
-        public async Task<IActionResult>Login(LoginRequest request)
+        public async Task<IActionResult> Login(LoginRequest request)
         {
-            try
+            CommonResponse response = new CommonResponse();
+
+            UserLoginData user = await _repository.LoginUser(request);
+
+            if (user == null)
             {
-               
-                CommonResponse response = new CommonResponse();
-                
-                User user = await _repository.Login(request);
-                if (user == null)
-                {
-                    response = new CommonResponse
-                    {
-                        StatusCode = 204,
-                        Message = "Invalid username or password",
-                        Data = null
-                    };
-                    return Ok(response);
-                }
-                string token = _jwtTokenHelper.GenerateToken(user);
-                LoginResponse loginResponse = new LoginResponse
-                {
-                    Token = token,
-                    UserName = user.Name,
-                    Role = user.Role
-                };
                 response = new CommonResponse
                 {
-                    StatusCode = 200,
-                    Message = "Login succesfull",
-                    Data = loginResponse
+                    StatusCode = 401,
+                    Message = "Invalid email or password",
+                    Data = null
                 };
+
                 return Ok(response);
             }
-            finally { }
+
+            
+            string token = _jwtTokenHelper.GenerateToken(user);
+
+            LoginResponse loginResponse = new LoginResponse
+            {
+                Token = token,
+                UserName = user.Name,
+                Role = user.RoleName
+            };
+
+            response = new CommonResponse
+            {
+                StatusCode = 200,
+                Message = "Login successful",
+                Data = loginResponse
+            };
+
+            return Ok(response);
         }
-       
+
+
+        [HttpPost("Register")]
+        public async Task<IActionResult> Register(RegisterRequest request)
+        {
+            CommonResponse response =
+                await _repository.Register(request);
+
+            return Ok(response);
+        }
     }
 }

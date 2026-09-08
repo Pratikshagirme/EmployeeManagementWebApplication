@@ -10,6 +10,6 @@ namespace EmployeeManagementWebApplication.Interface
         public Task<CommonResponse> UpdateEmployee(Employee employee);
         public Task<CommonResponse> DeleteEmployee(int Id);
         Task<CommonResponse> UploadEmployeeImage(ImageUploadRequest request);
-        Task<CommonResponse> Register(RegisterRequest request);
+        
     }
 }
