@@ -19,6 +19,7 @@ namespace EmployeeManagementWebApplication.Repository
         
         public async Task<CommonResponse> GetAllEmployees()
         {
+            DataSet ds = new();
             CommonResponse response = new CommonResponse();
             try
             {
@@ -30,23 +31,30 @@ namespace EmployeeManagementWebApplication.Repository
                     SqlCommand cmd = new SqlCommand("GetAllEmployees", con);
                     cmd.CommandType = CommandType.StoredProcedure;
                     SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    DataSet dataset = new DataSet();
-                    adapter.Fill(dataset);
-                    DataTable table = dataset.Tables[0];
-                    foreach (DataRow row in table.Rows)
+                    
+                    adapter.Fill(ds);
+                    if (ds.Tables.Count > 0)
                     {
-                        Employee employee = new Employee();
-                        employee.Id = Convert.ToInt32(row["Id"]);
-                        employee.Name = row["Name"].ToString();
-                        employee.Email = row["Email"].ToString();
-                        employee.Department = row["Department"].ToString();
-                        employee.Salary = Convert.ToDecimal(row["Salary"]);
-                        employee.IsActive = Convert.ToBoolean(row["IsActive"]);
-                        employee.ProfileImage = row["ProfileImage"] == DBNull.Value ? null : row["ProfileImage"].ToString();
+                        if (ds.Tables[0].Rows.Count > 0)
+                        {
+                            foreach (DataRow dr in ds.Tables[0].Rows)
+                            {
+                                Employee employee = new Employee();
+                                employee.Id = Convert.ToInt32(dr["Id"]);
+                                employee.Name = dr["Name"].ToString();
+                                employee.Email = dr["Email"].ToString();
+                                employee.Department = dr["Department"].ToString();
+                                employee.Salary = Convert.ToDecimal(dr["Salary"]);
+                                employee.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                                employee.ProfileImage = dr["ProfileImage"] == DBNull.Value ? null : dr["ProfileImage"].ToString();
 
-                        employees.Add(employee);
+                                employees.Add(employee);
+
+
+                            }
+                        }
+                       
                     }
-
                 }
                 if (employees.Count > 0)
                 {

@@ -107,7 +107,7 @@ namespace EmployeeManagementWebApplication.Controllers
                     Salary = request.Salary
                 };
                  response = await _repository.UpdateEmployee(employee);
-                if (response.StatusCode == 201)
+                if (response.StatusCode == 200)
                 {
                     return Ok(response);
                 }
@@ -133,7 +133,7 @@ namespace EmployeeManagementWebApplication.Controllers
             return Ok(response);
         }
         [Authorize(Roles ="Admin")]
-        [HttpDelete]
+        [HttpDelete("{Id}")]
         public async Task<IActionResult> DeleteEmployee(int Id)
         {
             CommonResponse response = new CommonResponse();
@@ -142,7 +142,7 @@ namespace EmployeeManagementWebApplication.Controllers
                 
                 response = await _repository.DeleteEmployee(Id);
 
-                if (response.StatusCode == 201)
+                if (response.StatusCode == 200)
                 {
                     return Ok(response);
                 }

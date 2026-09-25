@@ -14,6 +14,7 @@ namespace EmployeeManagementWebApplication.Helpers
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<JwtTokenHelper>();
             services.AddTransient<RequestLoginMiddleware>();
+            services.AddScoped<IBulkEmployeeRepository, BulkEmployeeRepository>();
 
             return services;
         }
